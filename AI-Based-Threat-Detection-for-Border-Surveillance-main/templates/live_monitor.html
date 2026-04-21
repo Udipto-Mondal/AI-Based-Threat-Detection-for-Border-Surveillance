@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Live Monitor - Falcon AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="monitor-header">
+        <h2><i class="fas fa-satellite-dish text-danger"></i> Live Surveillance Feed</h2>
+        <div class="status-badge live">LIVE</div>
+    </div>
+
+    <div class="monitor-grid">
+        <!-- Main Video Feed -->
+        <div class="video-feed-container glass-panel" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="video-wrapper"
+                style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center; background: #000;">
+                <img src="{{ url_for('main.video_feed') }}" alt="Live Feed" class="live-feed-img"
+                    style="max-width: 100%; max-height: 100%; border-radius: 8px;">
+                <div class="feed-overlay">
+                    <div class="cam-info">CAM-01 | SECTOR 4</div>
+                    <div class="rec-indicator">REC</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Alerts Panel -->
+        <div class="alerts-panel glass-panel">
+            <h3><i class="fas fa-bell"></i> System Alerts</h3>
+            <div class="alerts-list" id="alertsList" style="height: 400px; overflow-y: auto;">
+                <!-- Alerts will be injected here via JS -->
+                <div class="alert-item critical">
+                    <span class="time">System</span>
+                    <span class="msg">Monitoring Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Bar (Bottom) -->
+        <div class="control-panel glass-panel"
+            style="grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px;">
+            <span class="text-muted" style="font-weight: bold;">CAMERA CONTROL:</span>
+            <button onclick="switchSource('default')" class="btn btn-outline-primary">
+                <i class="fas fa-film"></i> Default Video
+            </button>
+            <button onclick="switchSource('webcam')" class="btn btn-outline-danger">
+                <i class="fas fa-video"></i> Webcam
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Switch Source Function
+    function switchSource(sourceType) {
+        fetch("{{ url_for('main.initiate_analysis') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: sourceType })
+        })
+            .then(r => r.json())
+            .then(data => {
+                // Show toast or alert
+                const badge = document.querySelector('.status-badge');
+                badge.textContent = 'SWITCHING...';
+                badge.classList.remove('live');
+                badge.classList.add('warning');
+
+                setTimeout(() => {
+                    // Reload image to force reconnect
+                    const img = document.querySelector('.live-feed-img');
+                    img.src = "{{ url_for('main.video_feed') }}?" + new Date().getTime();
+
+                    badge.textContent = 'LIVE';
+                    badge.classList.remove('warning');
+                    badge.classList.add('live');
+                }, 1000);
+            });
+    }
+
+    // Poll for Live Alerts
+    setInterval(() => {
+        fetch("{{ url_for('main.api_status') }}")
+            .then(r => r.json())
+            .then(data => {
+                const list = document.getElementById('alertsList');
+                if (!list) return; // Safety check
+
+                // We prepend new alerts, so we don't clear everything to avoid flickering
+                // But for simplicity, let's just rebuild if changed or append new ones.
+                // A simple approach: Clear and Rebuild for now (easiest to ensure sync)
+
+                if (data.alerts && data.alerts.length > 0) {
+                    list.innerHTML = '';
+                    data.alerts.forEach(alert => {
+                        const item = document.createElement('div');
+                        item.className = 'alert-item';
+                        if (alert.type.includes('PUSH-IN') || alert.type.includes('Intrusion')) item.classList.add('critical');
+
+                        item.innerHTML = `
+                            <span class="time">${alert.time}</span>
+                            <span class="msg">${alert.message}</span>
+                        `;
+                        list.appendChild(item);
+                    });
+                }
+            });
+    }, 2000);
+</script>
+{% endblock %}

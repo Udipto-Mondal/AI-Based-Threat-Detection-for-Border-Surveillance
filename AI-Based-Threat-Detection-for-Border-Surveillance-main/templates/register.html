@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Operator Registration - Falcon AI{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-panel">
+        <div class="auth-header">
+            <h1>NEW OPERATOR</h1>
+            <p class="auth-subtitle">CREATING SECURE PROFILE</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="username">USER IDENTIFIER</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user-plus"></i>
+                    <input type="text" id="username" name="username" placeholder="Choose username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">SECURE EMAIL</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" name="email" placeholder="Enter email address" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">ACCESS KEY</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Create secure key (min 6 chars)"
+                        required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">CONFIRM ACCESS KEY</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirm_password" name="confirm_password"
+                        placeholder="Re-enter secure key" required>
+                </div>
+            </div>
+
+            <button type="submit" class="auth-button">REGISTER AS OPERATOR</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already have access? <a href="{{ url_for('auth.login') }}">Login</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

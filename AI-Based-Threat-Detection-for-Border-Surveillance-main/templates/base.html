@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FalconAI Border Defense System{% endblock %}</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-background"></div>
+    <div class="scan-line"></div>
+
+    {% if current_user.is_authenticated %}
+    <nav class="glass-nav">
+        <div class="nav-content">
+            <a href="{{ url_for('main.index') }}" class="nav-logo">
+                <i class="fas fa-shield-virus"></i>
+                <span class="logo-text">FALCON<span class="highlight">AI</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="{{ url_for('main.live_monitor') }}"
+                    class="{{ 'active' if request.endpoint == 'main.live_monitor' }}">
+                    <i class="fas fa-satellite-dish"></i> LIVE MONITOR
+                </a>
+                <a href="{{ url_for('upload.index') }}" class="{{ 'active' if 'upload' in request.endpoint }}">
+                    <i class="fas fa-upload"></i> UPLOAD & ANALYZE
+                </a>
+                <a href="{{ url_for('analytics.analytics') }}"
+                    class="{{ 'active' if 'analytics' in request.endpoint }}">
+                    <i class="fas fa-chart-pie"></i> INTEL REPORTS
+                </a>
+            </div>
+            <div class="nav-user">
+                <span class="user-badge">{{ current_user.username }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="btn-logout"><i class="fas fa-power-off"></i></a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i class="fas fa-info-circle"></i> {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Chatbot Widget -->
+    <div id="chat-widget" class="chat-widget hidden">
+        <div class="chat-header">
+            <div class="header-title">
+                <i class="fas fa-robot"></i> TACTICAL ASSISTANT
+            </div>
+            <button id="close-chat" class="btn-icon"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="message bot-message">
+                <div class="msg-content">Tactical Assistant Online. Awaiting orders.</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Enter command...">
+            <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button id="chatbot-fab" class="chatbot-fab glow-effect">
+        <i class="fas fa-comment-alt"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

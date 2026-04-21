@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Upload & Analyze - Falcon AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="page-header">
+        <h2><i class="fas fa-file-upload text-accent"></i> Video Analysis Lab</h2>
+        <p>Upload surveillance footage for instant threat detection and forensic analysis.</p>
+    </div>
+
+    <div class="upload-grid">
+        <!-- Upload Section -->
+        <div class="upload-panel glass-panel">
+            <h3>Select Footage</h3>
+            <form method="post" enctype="multipart/form-data" class="upload-form">
+                <div class="file-drop-zone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & Drop or Click to Upload</p>
+                    <input type="file" name="video" accept=".mp4,.avi,.mov,.mkv" onchange="this.form.submit()">
+                </div>
+            </form>
+        </div>
+
+        <!-- Analysis Monitor -->
+        <div class="analysis-monitor glass-panel">
+            <h3>Analysis Feed</h3>
+            {% if video_filename %}
+            <div class="video-wrapper">
+                <img src="{{ url_for('upload.stream_upload', filename=video_filename) }}" alt="Analysis Stream"
+                    class="analysis-feed">
+                <div class="processing-badge">PROCESSING</div>
+            </div>
+            {% else %}
+            <div class="placeholder-feed">
+                <i class="fas fa-video-slash"></i>
+                <p>No video loaded. Upload a file to begin analysis.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Instant Results (Text) -->
+        <div class="results-panel glass-panel">
+            <h3><i class="fas fa-list-alt"></i> Alert Log</h3>
+            <div class="stat-row">
+                <span class="label">Status:</span>
+                <span class="value" id="analysisStatus">{% if video_filename %}Analyzing...{% else %}Idle{% endif
+                    %}</span>
+            </div>
+            <div class="alerts-list" id="uploadAlertsList"
+                style="margin-top: 15px; max-height: 400px; overflow-y: auto;">
+                <!-- Alerts injected here -->
+            </div>
+        </div>
+
+        <!-- Visual Analysis (New Section) -->
+        <div class="visuals-panel glass-panel" style="grid-column: 1 / -1; margin-top: 20px;">
+            <h3><i class="fas fa-chart-pie"></i> Visual Analysis</h3>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <!-- Chart -->
+                <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <h4>Threat Distribution</h4>
+                    <div style="height: 200px;">
+                        <canvas id="uploadChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Screenshot Gallery -->
+                <div style="flex: 2; min-width: 300px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <h4>Recent Threat Captures</h4>
+                    <div id="screenshotGallery"
+                        style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+                        <div class="text-muted">Waiting for threats...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% if video_filename %}
+
+    // Initialize Chart
+    const ctx = document.getElementById('uploadChart').getContext('2d');
+    const uploadChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Push-In', 'Push-Out', 'Other'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: ['#ff4b4b', '#00d2ff', '#aaa'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: '#e0e0e0', boxWidth: 10 } }
+            }
+        }
+    });
+
+    // Poll for alerts
+    setInterval(() => {
+        fetch("{{ url_for('upload.get_upload_alerts') }}")
+            .then(r => r.json())
+            .then(data => {
+                const list = document.getElementById('uploadAlertsList');
+                const gallery = document.getElementById('screenshotGallery');
+
+                // Update Chart Data
+                let pushIn = 0, pushOut = 0, other = 0;
+                let galleryHtml = '';
+                let listHtml = '';
+
+                if (data.alerts.length === 0) {
+                    listHtml = '<div class="text-muted">No threats detected yet...</div>';
+                    galleryHtml = '<div class="text-muted">Waiting for threats...</div>';
+                } else {
+                    data.alerts.forEach(alert => {
+                        // Count for chart
+                        if (alert.type.includes('PUSH-IN')) pushIn++;
+                        else if (alert.type.includes('PUSH-OUT')) pushOut++;
+                        else other++;
+
+                        // Add to List
+                        const isCritical = alert.type.includes('PUSH-IN');
+                        listHtml += `
+                            <div class="alert-item ${isCritical ? 'critical' : ''}">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span class="time">${alert.time}</span>
+                                    <span class="badge" style="background:${isCritical ? '#ff4b4b' : '#00d2ff'}; font-size:0.7em;">${alert.type}</span>
+                                </div>
+                                <div class="msg" style="margin-top:5px;">${alert.message}</div>
+                            </div>
+                        `;
+
+                        // Add to Gallery if image exists
+                        if (alert.image) {
+                            galleryHtml += `
+                                <div style="min-width: 150px; cursor: pointer;" onclick="window.open('${alert.image}', '_blank')">
+                                    <img src="${alert.image}" style="width: 150px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid #555;">
+                                    <div style="font-size: 0.8em; text-align: center; margin-top: 5px;">${alert.time}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+
+                list.innerHTML = listHtml;
+                if (galleryHtml) gallery.innerHTML = galleryHtml;
+
+                uploadChart.data.datasets[0].data = [pushIn, pushOut, other];
+                uploadChart.update();
+            });
+    }, 2000);
+    {% endif %}
+</script>
+{% endblock %}

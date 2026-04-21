@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: falcon-ai-border-defence
+    runtime: docker
+    plan: free
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: TWILIO_SID
+        sync: false
+      - key: TWILIO_TOKEN
+        sync: false
+      - key: FROM_NUMBER
+        sync: false
+      - key: TO_NUMBER
+        sync: false

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Falcon AI - Advanced Border Defense{% endblock %}
+
+{% block content %}
+<div class="landing-hero">
+    <div class="hero-content">
+        <h1 class="animate-fade-in-up">Secure Borders,<br>Save Lives.</h1>
+        <p class="animate-fade-in-up delay-1">
+            Next-generation autonomous surveillance powered by advanced AI.
+            Detect threats in real-time, prevent illegal crossings, and ensure safety with precision.
+        </p>
+        <div class="hero-actions animate-fade-in-up delay-2">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.live_monitor') }}" class="btn btn-primary glow-effect">
+                <i class="fas fa-satellite-dish"></i> Launch Live Monitor
+            </a>
+            <a href="{{ url_for('upload.index') }}" class="btn btn-secondary glass-effect">
+                <i class="fas fa-upload"></i> Analyze Video
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary glow-effect">
+                <i class="fas fa-sign-in-alt"></i> Login to Access
+            </a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline">
+                Request Access
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-visual animate-fade-in">
+        <div class="radar-scan"></div>
+        <div class="map-grid"></div>
+        <img src="{{ url_for('static', filename='images/hero_visual.png') }}" alt="Surveillance HUD" class="hud-overlay"
+            onerror="this.style.display='none'">
+    </div>
+</div>
+
+<section class="features-grid">
+    <div class="feature-card glass-panel">
+        <div class="icon-box"><i class="fas fa-eye"></i></div>
+        <h3>Real-Time Vision</h3>
+        <p>Instant detection of human intrusion with 99% accuracy using YOLOv11.</p>
+    </div>
+    <div class="feature-card glass-panel">
+        <div class="icon-box"><i class="fas fa-shield-alt"></i></div>
+        <h3>Virtual Fence</h3>
+        <p>Automated perimeter monitoring with Push-In/Push-Out classification.</p>
+    </div>
+    <div class="feature-card glass-panel">
+        <div class="icon-box"><i class="fas fa-chart-line"></i></div>
+        <h3>Instant Analytics</h3>
+        <p>Upload footage and get immediate threat assessment and statistical breakdown.</p>
+    </div>
+</section>
+{% endblock %}

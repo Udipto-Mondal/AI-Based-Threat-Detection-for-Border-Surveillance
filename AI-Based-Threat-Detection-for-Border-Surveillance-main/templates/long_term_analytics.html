@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Intelligence Reports - Falcon AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="page-header">
+        <h2><i class="fas fa-chart-pie text-info"></i> Intelligence Reports</h2>
+        <div class="actions">
+            <a href="{{ url_for('analytics.api_export') }}" class="btn btn-sm btn-outline">
+                <i class="fas fa-download"></i> Export CSV
+            </a>
+        </div>
+    </div>
+
+    <div class="analytics-grid">
+        <!-- Daily Trend Chart -->
+        <div class="chart-card glass-panel span-2">
+            <h3>Daily Threat Activity (Last 7 Days)</h3>
+            <div style="height: 300px;">
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Threat Distribution -->
+        <div class="chart-card glass-panel">
+            <h3>Threat Classification</h3>
+            <div style="display: flex; flex-direction: column; height: 100%;">
+                <div style="flex: 1; min-height: 200px;">
+                    <canvas id="typeChart"></canvas>
+                </div>
+                <div id="threatDetails"
+                    style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                    <!-- Details injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Heatmap (Activity by Hour) -->
+        <div class="chart-card glass-panel">
+            <h3>Activity Heatmap (Hourly)</h3>
+            <div style="height: 300px;">
+                <canvas id="heatmapChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Integration -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Common Chart Options for Dark Theme
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { labels: { color: '#e0e0e0' } }
+        },
+        scales: {
+            y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aaa' } },
+            x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aaa' } }
+        }
+    };
+
+    // Load Daily Data
+    fetch('{{ url_for("analytics.api_daily") }}')
+        .then(r => r.json())
+        .then(data => {
+            new Chart(document.getElementById('dailyChart'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Alerts',
+                        data: data.data,
+                        borderColor: '#00d2ff',
+                        backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: chartOptions
+            });
+        });
+
+    // Load Types Data
+    fetch('{{ url_for("analytics.api_types") }}')
+        .then(r => r.json())
+        .then(data => {
+            // Populate Chart
+            new Chart(document.getElementById('typeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: ['#ff4b4b', '#00d2ff', '#3a7bd5', '#f9d423'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { color: '#e0e0e0' } } }
+                }
+            });
+
+            // Populate Details List
+            const detailsDiv = document.getElementById('threatDetails');
+            if (data.labels.length > 0) {
+                let html = '<ul style="list-style: none; padding: 0; margin: 0;">';
+                data.labels.forEach((label, index) => {
+                    const count = data.data[index];
+                    let icon = 'fa-exclamation-circle';
+                    let color = '#aaa';
+
+                    if (label.includes('PUSH-IN')) { icon = 'fa-arrow-right'; color = '#ff4b4b'; }
+                    else if (label.includes('PUSH-OUT')) { icon = 'fa-arrow-left'; color = '#00d2ff'; }
+
+                    html += `
+                        <li style="display: flex; justify-content: space-between; margin-bottom: 5px; color: #e0e0e0;">
+                            <span><i class="fas ${icon}" style="color: ${color}; width: 20px;"></i> ${label}</span>
+                            <span style="font-weight: bold;">${count}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                detailsDiv.innerHTML = html;
+            } else {
+                detailsDiv.innerHTML = '<p class="text-muted text-center">No data available</p>';
+            }
+        });
+
+    // Load Heatmap Data
+    fetch('{{ url_for("analytics.api_heatmap") }}')
+        .then(r => r.json())
+        .then(data => {
+            new Chart(document.getElementById('heatmapChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Activity Intensity',
+                        data: data.data,
+                        backgroundColor: '#f9d423',
+                    }]
+                },
+                options: chartOptions
+            });
+        });
+</script>
+{% endblock %}

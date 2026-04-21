@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Data Analysis{% endblock %}
+
+{% block content %}
+<header>
+    <div class="logo">
+        <img src="https://i.ibb.co.com/dwZtBX85/Falcon-AI.png" alt="Falcon AI">
+        <h1>FALCON AI - ANALYTICS DASHBOARD</h1>
+    </div>
+</header>
+
+<main class="analytics-grid">
+    <div class="analytics-header">
+        <h2>> DATA ANALYSIS & INSIGHTS</h2>
+        <a href="{{ url_for('main.dashboard') }}" class="back-button">← BACK TO DASHBOARD</a>
+    </div>
+
+    <div class="chart-row">
+        <div class="panel chart-panel-large">
+            <div class="panel-header">
+                <h2>> ALERTS PER DAY (LAST 7 DAYS)</h2>
+            </div>
+            <canvas id="daily-chart"></canvas>
+        </div>
+
+        <div class="panel chart-panel-large">
+            <div class="panel-header">
+                <h2>> THREAT TYPE DISTRIBUTION</h2>
+            </div>
+            <canvas id="types-chart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <div class="panel chart-panel-large">
+            <div class="panel-header">
+                <h2>> ACTIVITY HEATMAP (HOURLY)</h2>
+            </div>
+            <canvas id="heatmap-chart"></canvas>
+        </div>
+
+        <div class="panel export-panel">
+            <div class="panel-header">
+                <h2>> DATA EXPORT</h2>
+            </div>
+            <button id="export-csv-btn" class="action-button">EXPORT REPORT (CSV)</button>
+            <p class="export-info">Download all alerts from MongoDB as CSV file</p>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}
+

@@ -1,0 +1,17 @@
+flask==3.0.0
+flask-pymongo==2.3.0
+flask-login==0.6.3
+flask-bcrypt==1.0.1
+werkzeug==3.0.1
+ultralytics>=8.2.0
+opencv-python>=4.8.1.78
+numpy>=1.24.0
+pillow>=10.0.0
+pyyaml>=6.0.1
+torch>=2.1.0
+torchvision>=0.16.0
+tqdm>=4.66.0
+twilio==8.10.0
+pymongo==4.6.1
+google-generativeai
+

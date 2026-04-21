@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Tactical HUD - Dashboard{% endblock %}
+
+{% block content %}
+<header>
+    <div class="logo">
+        <img src="https://i.ibb.co.com/dwZtBX85/Falcon-AI.png" alt="Falcon AI">
+        <h1>FALCON AI BORDER DEFENSE SYSTEM</h1>
+    </div>
+    <div class="status-bar">
+        <span>SYSTEM: <span id="status-online">ONLINE</span></span>
+        <span>MODEL: YOLOv11</span>
+        <span>TRACKER: ByteTrack</span>
+        <span>STATUS: <span id="analysis-status">READY</span></span>
+    </div>
+</header>
+
+<main class="dashboard-grid">
+    <!-- Left Sidebar -->
+    <div class="left-sidebar">
+        <div class="panel navigation-panel">
+            <div class="panel-header">
+                <h2>> NAVIGATION</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('main.dashboard') }}" class="nav-item active">DASHBOARD</a>
+                <a href="{{ url_for('analytics.analytics') }}" class="nav-item">ANALYTICS</a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-item">LOGOUT</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Center: Video Feed -->
+    <div class="center-panel">
+        <div class="panel live-feed-panel">
+            <div class="panel-header">
+                <h2>> LIVE CAMERA FEED</h2>
+                <div class="controls">
+                    <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+                    <button class="btn-control" id="uploadBtn" title="Upload Video">📤</button>
+                    <button class="btn-control" id="webcamBtn" title="Use Webcam">📹</button>
+                    <button class="btn-control" id="resetBtn" title="Reset to Default">🔄</button>
+                </div>
+            </div>
+            <div class="video-container">
+                <div class="scanlines-overlay"></div>
+                <div class="rec-indicator">
+                    <span class="rec-dot"></span>
+                    <span>REC</span>
+                </div>
+                <img
+                    id="video-stream"
+                    data-feed="{{ url_for('main.video_feed') }}"
+                    src="{{ url_for('main.video_feed') }}"
+                    alt="Live Feed">
+                <div class="placeholder-text" id="placeholder">
+                    <span class="placeholder-icon">📷</span>
+                    CLICK TO INITIATE ANALYSIS
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Stats & Logs -->
+    <div class="right-sidebar">
+        <div class="panel system-status-panel">
+            <div class="panel-header">
+                <h2>> SYSTEM STATUS</h2>
+            </div>
+            <div class="status-content">
+                <p>ANALYSIS STATUS: <span id="status-text">IDLE</span></p>
+                <p>TOTAL ALERTS: <span id="total-alerts">0</span> | CRITICAL: <span id="critical-alerts">0</span></p>
+                <p>FPS: <span id="fps">0</span> | ACTIVE TRACKS: <span id="active-tracks">0</span></p>
+            </div>
+        </div>
+
+        <div class="panel chart-panel">
+            <div class="panel-header">
+                <h2>> SYSTEM LOAD</h2>
+            </div>
+            <canvas id="system-load-chart"></canvas>
+        </div>
+
+        <div class="panel threat-log-panel">
+            <div class="panel-header">
+                <h2>> THREAT ALERT LOG</h2>
+            </div>
+            <div class="table-container">
+                <table class="threat-log-table">
+                    <thead>
+                        <tr>
+                            <th>TIME</th>
+                            <th>FRAME</th>
+                            <th>TRACK ID</th>
+                            <th>ALERT</th>
+                            <th>MESSAGE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="threat-log-body">
+                        <!-- JS will populate this -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Chatbot Widget -->
+<div id="chatbot-widget" class="chatbot-container">
+    <div class="chatbot-header" id="chatbot-toggle">
+        <span>> TACTICAL AI ASSISTANT</span>
+        <span class="toggle-icon">▼</span>
+    </div>
+    <div class="chatbot-body" id="chatbot-body" style="display: none;">
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chatbot-input-container">
+            <input type="text" id="chatbot-input" placeholder="Enter command..." autocomplete="off">
+            <button id="chatbot-send">SEND</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
+
